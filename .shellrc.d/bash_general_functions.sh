@@ -11,14 +11,18 @@ verify_imported_functions_exists() {
 }
 
 verify_array() {
-    local all_parameters
-    all_parameters=("$@")
+    local array
+    array=("$@")
 
-    declare -p all_parameters 2> /dev/null | grep -q '^declare \-a' \
-    || bash_logging ERROR "Something is not right with the parameters: \"${all_parameters[@]}\""
+    if [[ -z ${array[@]} ]]; then
+        bash_logging WARN "Array is empty: \"${array[@]}\", no arguments were supplied"
+        return 1
+    fi
 
-    [[ ! -z ${all_parameters[@]} ]] && return 0 \
-    || bash_logging ERROR "No arguments were supplied: \"${all_parameters[@]}\""
+    if ! declare -p array 2> /dev/null | grep -q '^declare \-a'; then
+        bash_logging ERROR "Something is not right with the array: \"${array[@]}\""
+        return 1
+    fi 
 }
 
 verify_file() {

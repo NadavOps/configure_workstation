@@ -4,10 +4,11 @@ get_cur_time() {
 }
 
 parse_k8s_context() {
-    local k8s_context k8s_symbol
+    local k8s_symbol k8s_context k8s_namespace
     k8s_symbol=$(echo $'\u2388')
     k8s_context=$(kubectl config view --minify -o jsonpath='{.users[].user.exec.env[].value}' 2> /dev/null)
-    if [[ $? == "0" ]]; then echo ''$k8s_symbol'['$k8s_context']'; else echo ""; fi
+    k8s_namespace=$(kubectl config view -o jsonpath="{.contexts[?(@.name == '$k8s_context')].context.namespace}")
+    if [[ $? == "0" ]]; then echo ''$k8s_symbol'['$k8s_context/$k8s_namespace']'; else echo ""; fi
 }
 
 parse_git_branch() {
@@ -17,10 +18,10 @@ parse_git_branch() {
 }
 
 myprompt() {
-    local green=002; local red=001; local purple_light=140; local cyan=006; local brownish=138; local bluish=39
-    local purple_dark=004; local orange=130; local yellow=142; local dark_cyan=024
+    local red=001; local green=002; local yellow=003; local purple_dark=004; local purple_light=140; local cyan=006; local brownish=138; local bluish=39
+    local orange=166; local orange_light=130; local yellow=142; local dark_cyan=024; local green=35; local green_light=36; local peach=216
 
-    PROMPT='%(?.%F{'$green'}[%?].%F{'$red'}[%?]) %F{'$purple_light'}'$(get_cur_time)' %F{'$brownish'}'$(parse_k8s_context)''$(parse_git_branch)' %F{'$bluish'}'$(pwd)'%f 
+    PROMPT='%(?.%F{'$green'}[%?].%F{'$red'}[%?]) %F{'$purple_light'}'$(get_cur_time)' %F{'$bluish'}'$(parse_k8s_context)'%F{'$green_light'}'$(parse_git_branch)' %F{'$peach'}'$(pwd)'%f 
 %# '
 }
 

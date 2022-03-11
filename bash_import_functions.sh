@@ -1,12 +1,12 @@
 #!/bin/bash
 
-GIT_URL="https://raw.githubusercontent.com/NadavOps/technologies/main/bash"
+GIT_RAW_URL="https://raw.githubusercontent.com/NadavOps/configure_workstation/main"
 RELATIONAL_PATH=".shellrc.d"
 
 ESSENTIAL_FUNCTIONS=(
 # local_path---remote_git_path
-"./$RELATIONAL_PATH/bash_logging.sh---$GIT_URL/$RELATIONAL_PATH/bash_logging.sh"
-"./$RELATIONAL_PATH/bash_general_functions.sh---$GIT_URL/$RELATIONAL_PATH/bash_general_functions.sh"
+"./$RELATIONAL_PATH/bash_logging.sh---$GIT_RAW_URL/$RELATIONAL_PATH/bash_logging.sh"
+"./$RELATIONAL_PATH/bash_general_functions.sh---$GIT_RAW_URL/$RELATIONAL_PATH/bash_general_functions.sh"
 )
 
 functions_counter=0

@@ -23,21 +23,28 @@ create_rc_dirs() {
 }
 
 update_rc_file() {
-    local current_rc_file archive_directory input_shell_rc_file enrich_directory enrich_file
+    local current_rc_file archive_directory shell_rc_configurations_files shell_rc_configuration_file shell_rc_basename enrich_directory enrich_file
     current_rc_file="$HOME/$1"
     archive_directory="$2"
-    input_shell_rc_file="$3"
-    touch "$current_rc_file" && bash_logging WARN "Editing \"$current_rc_file\". (os_type: \"$os_type\")"
+    shift 2
+    shell_rc_configurations_files=("$@")
     archive_file "$current_rc_file" "$archive_directory" || return 1
-    enrich_directory="./shellrc_tpl"
+    enrich_directory="./shellrc_enrich"
     verify_dir "$enrich_directory" || return 1
-    cat "$input_shell_rc_file" > "$current_rc_file" && \
-    bash_logging INFO "Copied \"$input_shell_rc_file\" into the running rc file: \"$current_rc_file\"" || \
-    bash_logging ERROR "Failed to copy \"$input_shell_rc_file\" into the running rc file: \"$current_rc_file\""
+
+    verify_array "${shell_rc_configurations_files[@]}" && \
+    for shell_rc_configuration_file in "${shell_rc_configurations_files[@]}"; do
+        shell_rc_basename=$(basename "$shell_rc_configuration_file")
+        bash_logging DEBUG "copy additional $shell_rc_configuration_file to $enrich_directory/ignore_me_git.$shell_rc_basename"
+        cp "$shell_rc_configuration_file" "$enrich_directory/ignore_me_git.$shell_rc_basename"
+    done || bash_logging DEBUG "additional were not supplied"
+
+    echo "" > "$current_rc_file" && bash_logging WARN "Editing \"$current_rc_file\". (os_type: \"$os_type\")"
+
     for enrich_file in $(ls $enrich_directory); do
         cat "$enrich_directory/$enrich_file" >> "$current_rc_file" && \
-        bash_logging INFO "Copied \"$input_shell_rc_file\" into the running rc file: \"$current_rc_file\"" || \
-        bash_logging ERROR "Failed to copy \"$input_shell_rc_file\" into the running rc file: \"$current_rc_file\""
+        bash_logging INFO "Added \"$enrich_directory/$enrich_file\" into the running rc file: \"$current_rc_file\"" || \
+        bash_logging ERROR "Failed to add \"$enrich_directory/$enrich_file\" into the running rc file: \"$current_rc_file\""
     done
 }
 
@@ -46,23 +53,23 @@ bash_edit_shell_rc() {
     verify_imported_functions_exists "bash_logging" "verify_array" "archive_file" "verify_file" "verify_dir"
     set +e
     bash_logging DEBUG "Running from $0"
-    local input_shell_rc_file input_scripts_directories os_type archive_directory current_rc_file
-    input_shell_rc_file="$1"
-    verify_file "$input_shell_rc_file" || return 1
-    shift 1
-    input_scripts_directories=("$@")
+    local shell_rc_configurations_files shell_rc_configuration_file os_type archive_directory current_rc_file
+    shell_rc_configurations_files=("$@")
+    verify_array "${shell_rc_configurations_files[@]}" && \
+    for shell_rc_configuration_file in "${shell_rc_configurations_files[@]}"; do verify_file "$shell_rc_configuration_file" || return 1; done || \
+    bash_logging INFO "Additional configrations were not supplied, configuring with the built in configuration only"
     archive_directory="$HOME/archive"
     mkdir -p "$archive_directory"
     os_type=$(uname | tr "[[:upper:]]" "[[:lower:]]")
     if [[ $os_type == *linux* || $os_type == *darwin* ]]; then
         current_rc_file=".bashrc"
         create_rc_dirs "$current_rc_file" "$archive_directory"
-        update_rc_file "$current_rc_file" "$archive_directory" "$input_shell_rc_file" || exit 1
+        update_rc_file "$current_rc_file" "$archive_directory" "${shell_rc_configurations_files[@]}" || exit 1
     fi
     if [[ $os_type == *darwin* ]]; then
         current_rc_file=".zshrc"
         create_rc_dirs "$current_rc_file" "$archive_directory" "unique_flow"
-        update_rc_file "$current_rc_file" "$archive_directory" "$input_shell_rc_file" || exit 1
+        update_rc_file "$current_rc_file" "$archive_directory" "${shell_rc_configurations_files[@]}" || exit 1
     fi
     if [[ $os_type != *linux* && $os_type != *darwin* ]]; then
         bash_logging ERROR "what is this OS? (os_type is $os_type)"
@@ -70,4 +77,4 @@ bash_edit_shell_rc() {
     fi
 }
 
-bash_edit_shell_rc "$1"
+bash_edit_shell_rc "$@"

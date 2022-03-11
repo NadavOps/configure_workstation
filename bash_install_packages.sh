@@ -64,7 +64,7 @@ install_linux_packages_list() {
 
     packages_list=("$@")
 
-    verify_array "${packages_list[@]}"
+    verify_array "${packages_list[@]}" || return 1
     
     bash_logging DEBUG "Updating apt"
     sudo apt-get update -y
@@ -80,6 +80,7 @@ install_linux_packages_list() {
             gpg_key_url=$(echo "$package_item" | awk -F "---" '{print $3}')
             install_repository "$package_name" "$install_repo" "$gpg_key_url" || exit 1
             install_linux_package "$package_name"
+	fi
     done
 }
 
@@ -91,9 +92,9 @@ verify_mac_package() {
         bash_logging DEBUG "Verify cask (GUI) mac package \"$package_name\""
         brew_flag="--cask"
     else
-        bash_logging DEBUG "Verify regulat (formula) mac package \"$package_name\""
+        bash_logging DEBUG "Verify regular (formula) mac package \"$package_name\""
         brew_flag="--formula"
-    if
+    fi
     verify_command="brew list $brew_flag | grep \"$package_name\$\" &> /dev/null && \
                     (bash_logging INFO \"Package: $package_name already installed\" && return 0) || \
                     (bash_logging WARN \"Package: $package_name is not installed\" && return 1)"
@@ -105,12 +106,12 @@ install_mac_package() {
     package_name="$1"
     package_type="$( echo "$2" | tr "[[:lower:]]" "[[:upper:]]" )"
     if [[ $package_type == "GUI" ]]; then
-        bash_logging DEBUG "Verify cask (GUI) mac package \"$package_name\""
+        bash_logging DEBUG "Installing cask (GUI) mac package \"$package_name\""
         brew_flag=" --cask"
     else
-        bash_logging DEBUG "Verify regulat (formula) mac package \"$package_name\""
+        bash_logging DEBUG "Installing regular (formula) mac package \"$package_name\""
         brew_flag=""
-    if
+    fi
     install_command="brew install$brew_flag $package_name"
     bash_logging DEBUG "$install_command"
     eval "$install_command" && return 0
@@ -122,14 +123,14 @@ install_mac_packages_list() {
 
     packages_list=("$@")
 
-    verify_array "${packages_list[@]}"
-
+    verify_array "${packages_list[@]}" || return 1
     for package_item in "${packages_list[@]}" ; do
         package_identifier=$(echo "$package_item" | awk -F "---" '{print $1}')
-        if echo $package_identifier | grep -i -e ^gui$ -e ^mac$ > /dev/null ; then
+        if echo "$package_identifier" | grep -i -e "^gui$" -e "^mac$" >/dev/null; then
             package_type="$package_identifier"
             package_name=$(echo "$package_item" | awk -F "---" '{print $2}')
         else
+            package_type=""
             package_name="$package_identifier"
         fi
         verify_mac_package "$package_name" "$package_type" && continue
@@ -139,48 +140,29 @@ install_mac_packages_list() {
 
 bash_install_packages() {
     set -e
-    verify_imported_functions_exists "bash_logging" "verify_array"
+    verify_imported_functions_exists "bash_logging" "verify_array" "verify_file"
     set +e
     bash_logging DEBUG "Running from $0"
-    local os_type packages_list
-    packages_list=("$@")
+    local os_type packages_files_lists packages_file_list file_line packages_list_array
+    packages_files_lists=("$@")
+    for packages_file_list in "${packages_files_lists[@]}"; do
+        verify_file "$packages_file_list" || return 1
+    done
+    while read -r file_line; do packages_list_array+=( "$file_line" ); done <<< $(sort -u <<< $(awk 1 "${packages_files_lists[@]}" | grep -v "#"))
     os_type=$(uname | tr "[[:upper:]]" "[[:lower:]]")
     if [[ $os_type == *linux* ]]; then
         bash_logging DEBUG "We in Linux. (os_type: \"$os_type\")"
         verify_linux_package_manager
-        install_linux_packages_list "${packages_list[@]}"
+        install_linux_packages_list "${packages_list_array[@]}"
     elif [[ $os_type == *darwin* ]]; then
         bash_logging DEBUG "We in Mac. (os_type: \"$os_type\")"
         verify_mac_package_manager
-        install_mac_packages_list "${packages_list[@]}"
+        install_mac_packages_list "${packages_list_array[@]}"
     else
         bash_logging ERROR "what is this OS? (os_type is $os_type)"
         exit 1
     fi
 }
 
-PACKAGES_LIST=("$@")
-bash_install_packages "${PACKAGES_LIST[@]}"
-# PACKAGES_PREREQUISITE=( "apt-transport-https"
-#                         "ca-certificates"
-#                         "curl" )
-#              # package_name---install_repo---gpg_key
-# PACKAGES_CLI=( "kubectl---https://apt.kubernetes.io/ kubernetes-xenial main---https://packages.cloud.google.com/apt/doc/apt-key.gpg"
-#                 "helm---https://baltocdn.com/helm/stable/debian/ all main---https://baltocdn.com/helm/signing.asc"
-#                 "jq"
-#                 "shellcheck"
-#                 "mysql-client" )
-#              # unsupported for linux ATM
-#              # install_name---filesystem_name
-# PACKAGES_GUI=( "microsoft-edge"
-#                "google-chrome"
-#                "firefox"
-#                "visual-studio-code"
-#                "iterm2" )
-# PACKAGES_MAC=( "lima"
-#                "docker" )
 
-
-# PACKAGES_MAC=( "lima"
-#                #asd
-#                "docker" )
+bash_install_packages "./packages_lists/packages.conf" "$@"
