@@ -60,7 +60,7 @@ install_linux_package() {
 }
 
 install_linux_packages_list() {
-    local packages_list package_item package_name package_type install_repo gpg_key_url
+    local packages_list package_item package_identifier package_name install_repo gpg_key_url
 
     packages_list=("$@")
 
@@ -70,31 +70,30 @@ install_linux_packages_list() {
     sudo apt-get update -y
 
     for package_item in "${packages_list[@]}" ; do
-        package_name=$(echo "$package_item" | awk -F "---" '{print $1}')
-        package_type=$(echo "$package_item" | awk -F "---" '{print $2}' | tr "[[:lower:]]" "[[:upper:]]")
-        [[ "$package_type" == "GUI" ]] && bash_logging WARN "This script doesn't support GUI installs for linux. \"package_type\" is: $package_type" && continue
-        verify_linux_package "$package_name" && continue
-        install_repo=$(echo "$package_item" | awk -F "---" '{print $3}')
-        gpg_key_url=$(echo "$package_item" | awk -F "---" '{print $4}')
-        install_repository "$package_name" "$install_repo" "$gpg_key_url" || exit 1
-        install_linux_package "$package_name"
+        package_identifier=$(echo "$package_item" | awk -F "---" '{print $1}')
+        if echo $package_identifier | grep -i -e ^gui$ -e ^mac$ > /dev/null ; then
+            bash_logging ERROR "This script doesn't support GUI installs for linux. \"package_identifier\" is: $package_identifier. continue to next package" && continue
+        else
+            package_name="$package_identifier"
+            verify_linux_package "$package_name" && continue
+            install_repo=$(echo "$package_item" | awk -F "---" '{print $2}')
+            gpg_key_url=$(echo "$package_item" | awk -F "---" '{print $3}')
+            install_repository "$package_name" "$install_repo" "$gpg_key_url" || exit 1
+            install_linux_package "$package_name"
     done
 }
 
 verify_mac_package() {
     local package_name package_type verify_command brew_flag
     package_name="$1"
-    package_type=$( echo "$2" | tr "[[:lower:]]" "[[:upper:]]" )
-    if [[ $package_type == "CLI" ]]; then
-        bash_logging DEBUG "Verify CLI mac package \"$package_name\""
-        brew_flag="--formula"
-    elif [[ $package_type == "GUI" ]]; then
-        bash_logging DEBUG "Verify GUI mac package \"$package_name\""
+    package_type="$( echo "$2" | tr "[[:lower:]]" "[[:upper:]]" )"
+    if [[ $package_type == "GUI" ]]; then
+        bash_logging DEBUG "Verify cask (GUI) mac package \"$package_name\""
         brew_flag="--cask"
     else
-        bash_logging ERROR "Verifying mac package: \"$package_name\" failed. package_type: \"$package_type\" is not correct. terminating"
-        exit 1
-    fi
+        bash_logging DEBUG "Verify regulat (formula) mac package \"$package_name\""
+        brew_flag="--formula"
+    if
     verify_command="brew list $brew_flag | grep \"$package_name\$\" &> /dev/null && \
                     (bash_logging INFO \"Package: $package_name already installed\" && return 0) || \
                     (bash_logging WARN \"Package: $package_name is not installed\" && return 1)"
@@ -102,35 +101,37 @@ verify_mac_package() {
 }
 
 install_mac_package() {
-    local package_name package_type verify_command brew_flag
+    local package_name package_type brew_flag install_command
     package_name="$1"
-    package_type="$2"
-    if [[ $package_type == "CLI" ]]; then
-        bash_logging DEBUG "Install CLI mac package \"$package_name\""
-        brew_flag=""
-    elif [[ $package_type == "GUI" ]]; then
-        bash_logging DEBUG "Install GUI mac package \"$package_name\""
+    package_type="$( echo "$2" | tr "[[:lower:]]" "[[:upper:]]" )"
+    if [[ $package_type == "GUI" ]]; then
+        bash_logging DEBUG "Verify cask (GUI) mac package \"$package_name\""
         brew_flag=" --cask"
     else
-        bash_logging ERROR "Installing mac package failed. package_name: \"$package_name\", package_type: \"$package_type\". terminating"
-        exit 1
-    fi
-    verify_command="brew install$brew_flag $package_name"
-    bash_logging DEBUG "$verify_command"
-    eval "$verify_command" && return 0
+        bash_logging DEBUG "Verify regulat (formula) mac package \"$package_name\""
+        brew_flag=""
+    if
+    install_command="brew install$brew_flag $package_name"
+    bash_logging DEBUG "$install_command"
+    eval "$install_command" && return 0
     bash_logging ERROR "Installing mac package failed. package_name: \"$package_name\", package_type: \"$package_type\". terminating" && exit 1
 }
 
 install_mac_packages_list() {
-    local packages_list package_item package_name package_type
+    local packages_list package_item package_identifier package_name package_type
 
     packages_list=("$@")
 
     verify_array "${packages_list[@]}"
 
     for package_item in "${packages_list[@]}" ; do
-        package_name=$(echo "$package_item" | awk -F "---" '{print $1}')
-        package_type=$(echo "$package_item" | awk -F "---" '{print $2}' | tr "[[:lower:]]" "[[:upper:]]")
+        package_identifier=$(echo "$package_item" | awk -F "---" '{print $1}')
+        if echo $package_identifier | grep -i -e ^gui$ -e ^mac$ > /dev/null ; then
+            package_type="$package_identifier"
+            package_name=$(echo "$package_item" | awk -F "---" '{print $2}')
+        else
+            package_name="$package_identifier"
+        fi
         verify_mac_package "$package_name" "$package_type" && continue
         install_mac_package "$package_name" "$package_type"
     done
@@ -177,4 +178,9 @@ bash_install_packages "${PACKAGES_LIST[@]}"
 #                "visual-studio-code"
 #                "iterm2" )
 # PACKAGES_MAC=( "lima"
+#                "docker" )
+
+
+# PACKAGES_MAC=( "lima"
+#                #asd
 #                "docker" )
