@@ -3,8 +3,6 @@ if [[ $(echo "$0") == *bash* ]]; then
     init_shell_file=".bashrc"
 elif [[ $(echo "$0") == *zsh* ]]; then
     init_shell_file=".zshrc"
-    autoload bashcompinit && bashcompinit
-    autoload -Uz compinit && compinit
 else
     init_shell_file=".shellrc"
     echo "The shell: \"$0\" is not identified"
