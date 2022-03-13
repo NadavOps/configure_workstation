@@ -1,25 +1,37 @@
 #!/bin/bash
-bash_prompt() {
-    local exit_code="$?"
-    local default="\033[0m"; local cyan="\033[38;5;6m"; local lime='\033[38;5;118m';
-    local green='\033[38;5;2m'; local red='\033[38;5;1m'; local purplish='\033[38;5;12m'
-    # Choose colour for exit status code
-    if [[ $exit_code != 0 ]]; then local exit_color=$red; else local exit_color=$cyan; fi
-    # Prompt Line
-    ps_exit_code="\[$cyan\][\[$exit_color\]${exit_code}\[$cyan\]]"
-    ps_time="\[$purplish\]($(get_current_time))"
-    ps_git_branch="\[$cyan\]$(parse_git_branch)"
-    ps_path="\[$lime\]\w"
-    ps_input="\n\[$default\]% "
-    PS1="$ps_exit_code $ps_time $ps_git_branch$ps_path$ps_input"
+get_current_time() {
+    date +"%T"
 }
 
 parse_git_branch() {
-    git rev-parse --git-dir &> /dev/null && echo "($(git rev-parse --abbrev-ref HEAD)) "
+    local branch_symbol
+    branch_symbol=$(echo $'\u2387')
+    git rev-parse --git-dir &> /dev/null && echo "$branch_symbol [$(git rev-parse --abbrev-ref HEAD)] "
 }
 
-get_current_time() {
-    date +"%T"
+parse_k8s_context() {
+    local k8s_symbol k8s_context k8s_namespace
+    k8s_symbol=$(echo $'\u2388')
+    k8s_context=$(kubectl config view --minify -o jsonpath='{.users[].user.exec.env[].value}' 2> /dev/null)
+    k8s_namespace=$(kubectl config view -o jsonpath="{.contexts[?(@.name == '$k8s_context')].context.namespace}")
+    if [[ $? == "0" ]]; then echo ''$k8s_symbol'['$k8s_context/$k8s_namespace']'; else echo ""; fi
+}
+
+bash_prompt() {
+    local exit_code="$?"
+    ## Colors at https://i.stack.imgur.com/clnVw.jpg
+    local default=$(tput setaf 15); local red=$(tput setaf 01); local green=$(tput setaf 35); local purple_light=$(tput setaf 140); local bluish=$(tput setaf 27)
+    local green_light=$(tput setaf 36); local peach=$(tput setaf 216)
+    # Choose colour for exit status code
+    if [[ $exit_code != 0 ]]; then local exit_color=$red; else local exit_color=$green; fi
+    # Prompt Line
+    ps_exit_code="\[$exit_color\][\[$exit_color\]${exit_code}\[$exit_color\]]"
+    ps_time="\[$purple_light\]$(get_current_time)"
+    ps_k8s="\[$bluish\]$(parse_k8s_context)"
+    ps_git_branch="\[$green_light\]$(parse_git_branch)"
+    ps_path="\[$peach\]\w"
+    ps_input="\n\[$default\]# "
+    PS1="$ps_exit_code $ps_time $ps_k8s $ps_git_branch$ps_path$ps_input"
 }
 
 export PROMPT_COMMAND=bash_prompt
