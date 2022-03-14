@@ -4,6 +4,7 @@
 ## Kubectl aliases
 alias kube='kubectl'
 alias kubens='kubectl config set-context --current --namespace $1'
+alias kubelogs='kube logs --timestamps --tail 200'
 
 kubecontext() {
     local desired_context current_context all_contexts suffix tmp_config
