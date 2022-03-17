@@ -2,7 +2,7 @@
 [[ $(command -v git) ]] || exit 0
 
 ## Git aliases
-git_commit_all_to_squash_later() {
+git_squash_later() {
     local branch_name force_flag
     if ! git rev-parse --git-dir 2> /dev/null; then bash_logging ERROR "$(pwd) is not a git directory" && return 1; fi
     force_flag="$1"
