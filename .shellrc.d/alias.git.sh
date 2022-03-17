@@ -11,6 +11,9 @@ git_squash_later() {
         bash_logging ERROR "You are trying to run the function without the --force flag in a branch named: \"$branch_name\". master/ main are not allowed"
         return 1
     fi
+    if [[ $branch_name == "main" || $branch_name == "master" ]] && [[ $force_flag == "--force" ]]; then
+        bash_logging WARN "You are pushing to \"$branch_name\" with dirty commit message, there is nothing much to do about it d:p"
+    fi
     bash_logging INFO "Running the command \"git add -A && git commit -m \"squash this commit later\" && git push"
     git add -A && git commit -m "squash this commit later" && git push
 }

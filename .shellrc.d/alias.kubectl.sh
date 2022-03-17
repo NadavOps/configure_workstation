@@ -1,5 +1,5 @@
 ## Kubectl
-[[ $(command -v kubectl) ]] || exit 0
+[[ $(command -v kubectl) ]] || return 0
 
 ## Kubectl aliases
 alias kube='kubectl'

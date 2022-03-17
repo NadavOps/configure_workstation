@@ -19,12 +19,34 @@ verify_mac_package_manager() {
     fi   
 }
 
+install_url_package() {
+    local url package_name saved_location
+    url="$1"
+    package_name="$2"
+    saved_location="/usr/local/bin"
+    [[ $(command -v curl) ]] && \
+    bash_logging DEBUG "Downloading \"$package_name\" from \"$url\"" && \
+    curl -s -L "$url" -o "$saved_location/$package_name" && \
+    chmod +x "$saved_location/$package_name" && \
+    bash_logging INFO "Downloaded \"$package_name\" from \"$url\" into \"$saved_location/$package_name\"" || \
+    bash_logging ERROR "Downloading \"$package_name\" from \"$url\" failed. curl package might be missing"
+}
+
+verify_package_fast() {
+    local package_name
+    package_name="$1"
+    bash_logging DEBUG "Verify package: \"$package_name\" fast without package manager"
+    [[ $(command -v "$package_name") ]] && \
+    bash_logging INFO "Package: \"$package_name\" already installed" && return 0
+    bash_logging DEBUG "Package: \"$package_name\" was not verified fastly will attempt to verify with package manager" && return 1
+}
+
 verify_linux_package() {
     local package_name
     package_name="$1"
-    bash_logging DEBUG "Verify linux package \"$package_name\""
+    verify_package_fast "$package_name" && return 0
     dpkg -s $package_name &> /dev/null && \
-    (bash_logging INFO "Package: \"$package_name\" already installed" && return 0) || \
+    bash_logging INFO "Package: \"$package_name\" already installed" && return 0 || \
     (bash_logging WARN "Package: \"$package_name\" is not installed" && return 1)
 }
 
@@ -71,8 +93,13 @@ install_linux_packages_list() {
 
     for package_item in "${packages_list[@]}" ; do
         package_identifier=$(echo "$package_item" | awk -F "---" '{print $1}')
-        if echo $package_identifier | grep -i -e ^gui$ -e ^mac$ > /dev/null ; then
-            bash_logging ERROR "This script doesn't support GUI installs for linux. \"package_identifier\" is: $package_identifier. continue to next package" && continue
+        if echo "$package_identifier" | grep -i -e "^url$" >/dev/null; then
+            package_name=$(echo "$package_item" | awk -F "---" '{print $2}')
+            verify_linux_package "$package_name" && continue
+            install_url_package "$package_identifier" "$package_name"
+            continue
+        elif echo $package_identifier | grep -i -e ^gui$ -e ^mac$ > /dev/null ; then
+            bash_logging ERROR "The package identifier is: \"$package_identifier\" which is supported in Mac. continue to next package" && continue
         else
             package_name="$package_identifier"
             verify_linux_package "$package_name" && continue
@@ -87,6 +114,7 @@ install_linux_packages_list() {
 verify_mac_package() {
     local package_name package_type verify_command brew_flag
     package_name="$1"
+    verify_package_fast "$package_name" && return 0
     package_type="$( echo "$2" | tr "[[:lower:]]" "[[:upper:]]" )"
     if [[ $package_type == "GUI" ]]; then
         bash_logging DEBUG "Verify cask (GUI) mac package \"$package_name\""
@@ -119,15 +147,25 @@ install_mac_package() {
 }
 
 install_mac_packages_list() {
-    local packages_list package_item package_identifier package_name package_type
+    local packages_list package_item package_identifier package_name package_type package_url
 
     packages_list=("$@")
 
     verify_array "${packages_list[@]}" || return 1
     for package_item in "${packages_list[@]}" ; do
         package_identifier=$(echo "$package_item" | awk -F "---" '{print $1}')
-        if echo "$package_identifier" | grep -i -e "^gui$" -e "^mac$" >/dev/null; then
+        if echo "$package_identifier" | grep -i -e "^url$" >/dev/null; then
+            package_type=""
+            package_name=$(echo "$package_item" | awk -F "---" '{print $2}')
+            verify_mac_package "$package_name" "$package_type" && continue
+            package_url=$(echo "$package_item" | awk -F "---" '{print $3}')
+            install_url_package "$package_url" "$package_name"
+            continue
+        elif echo "$package_identifier" | grep -i -e "^gui$" >/dev/null; then
             package_type="$package_identifier"
+            package_name=$(echo "$package_item" | awk -F "---" '{print $2}')
+        elif echo "$package_identifier" | grep -i -e "^mac$" >/dev/null; then
+            package_type=""
             package_name=$(echo "$package_item" | awk -F "---" '{print $2}')
         else
             package_type=""

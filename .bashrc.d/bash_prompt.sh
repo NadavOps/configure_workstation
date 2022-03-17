@@ -3,18 +3,20 @@ get_current_time() {
     date +"%T"
 }
 
-parse_git_branch() {
-    local branch_symbol
-    branch_symbol=$(echo $'\u2387')
-    git rev-parse --git-dir &> /dev/null && echo "$branch_symbol [$(git rev-parse --abbrev-ref HEAD)] "
-}
-
 parse_k8s_context() {
+    [[ $(command -v kubectl) ]] || return 0
     local k8s_symbol k8s_context k8s_namespace
     k8s_symbol=$(echo $'\u2388')
     k8s_context=$(kubectl config view --minify -o jsonpath='{.users[].user.exec.env[].value}' 2> /dev/null)
     k8s_namespace=$(kubectl config view -o jsonpath="{.contexts[?(@.name == '$k8s_context')].context.namespace}")
     if [[ $? == "0" ]]; then echo ''$k8s_symbol'['$k8s_context/$k8s_namespace']'; else echo ""; fi
+}
+
+parse_git_branch() {
+    [[ $(command -v git) ]] || return 0
+    local branch_symbol
+    branch_symbol=$(echo $'\u2387')
+    git rev-parse --git-dir &> /dev/null && echo "$branch_symbol [$(git rev-parse --abbrev-ref HEAD)] "
 }
 
 bash_prompt() {

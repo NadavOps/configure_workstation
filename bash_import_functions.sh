@@ -1,5 +1,4 @@
 #!/bin/bash
-
 GIT_RAW_URL="https://raw.githubusercontent.com/NadavOps/configure_workstation/main"
 RELATIONAL_PATH=".shellrc.d"
 
