@@ -16,6 +16,9 @@ done
 ## Aliases
 alias reload_shellrc="source $HOME/$init_shell_file"
 alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+# if [ -x /usr/bin/dircolors ]; then alias ls='ls --color=auto'; fi
 alias ll='ls -lah'
 alias la='ls -A'
 alias tailf='tail -f'
