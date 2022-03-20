@@ -78,7 +78,8 @@ install_linux_package() {
     local package_name
     package_name="$1"
     bash_logging DEBUG "Installing linux package: \"$package_name\""
-    sudo apt-get install -y "$package_name" && return 0 || return 1  
+    sudo apt-get install -y "$package_name" && return 0
+    bash_logging ERROR "Installing linux package: \"$package_name\" failed." && return 1
 }
 
 install_linux_packages_list() {
@@ -99,7 +100,8 @@ install_linux_packages_list() {
             install_url_package "$package_identifier" "$package_name"
             continue
         elif echo $package_identifier | grep -i -e ^gui$ -e ^mac$ > /dev/null ; then
-            bash_logging ERROR "The package identifier is: \"$package_identifier\" which is supported in Mac. continue to next package" && continue
+            package_name=$(echo "$package_item" | awk -F "---" '{print $2}')
+            bash_logging ERROR "The package: \"$package_name\" identifier is: \"$package_identifier\". Not supported." && continue
         else
             package_name="$package_identifier"
             verify_linux_package "$package_name" && continue
@@ -143,7 +145,7 @@ install_mac_package() {
     install_command="brew install$brew_flag $package_name"
     bash_logging DEBUG "$install_command"
     eval "$install_command" && return 0
-    bash_logging ERROR "Installing mac package failed. package_name: \"$package_name\", package_type: \"$package_type\". terminating" && exit 1
+    bash_logging ERROR "Installing mac package: \"$package_name\" failed. package_type: \"$package_type\"" && return 1
 }
 
 install_mac_packages_list() {
