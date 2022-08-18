@@ -32,15 +32,15 @@ mkdir -p "$lima_engine_configuration"
 cat << EOF > "$lima_engine_configuration/$docker_config"
 # https://github.com/lima-vm/lima/blob/master/examples/docker.yaml
 images:
-- location: "https://cloud-images.ubuntu.com/releases/21.10/release-20220201/ubuntu-21.10-server-cloudimg-amd64.img"
+- location: "https://cloud-images.ubuntu.com/releases/22.04/release-20220712/ubuntu-22.04-server-cloudimg-amd64.img"
   arch: "x86_64"
-  digest: "sha256:73fe1785c60edeb506f191affff0440abcc2de02420bb70865d51d0ff9b28223"
-- location: "https://cloud-images.ubuntu.com/releases/21.10/release-20220201/ubuntu-21.10-server-cloudimg-arm64.img"
+  digest: "sha256:86481acb9dbd62e3e93b49eb19a40c66c8aa07f07eff10af20ddf355a317e29f"
+- location: "https://cloud-images.ubuntu.com/releases/22.04/release-20220712/ubuntu-22.04-server-cloudimg-arm64.img"
   arch: "aarch64"
-  digest: "sha256:1b5b3fe616e1eea4176049d434a360344a7d471f799e151190f21b0a27f0b424"
-- location: "https://cloud-images.ubuntu.com/releases/21.10/release/ubuntu-21.10-server-cloudimg-amd64.img"
+  digest: "sha256:e1ce033239f0038dca5ef09e582762ba0d0dfdedc1d329bc51bb0e9f5057af9d"
+- location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
   arch: "x86_64"
-- location: "https://cloud-images.ubuntu.com/releases/21.10/release/ubuntu-21.10-server-cloudimg-arm64.img"
+- location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-arm64.img"
   arch: "aarch64"
 
 cpus: 2
