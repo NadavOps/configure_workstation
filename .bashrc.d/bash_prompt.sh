@@ -7,7 +7,8 @@ parse_k8s_context() {
     [[ $(command -v kubectl) ]] || return 0
     local k8s_symbol k8s_context k8s_namespace
     k8s_symbol=$(echo $'\u2388')
-    k8s_context=$(kubectl config view --minify -o jsonpath='{.users[].user.exec.env[].value}' 2> /dev/null)
+    k8s_context=$(kubectl config view -o jsonpath='{.current-context}' 2> /dev/null)
+    # k8s_context=$(kubectl config view --minify -o jsonpath='{.users[].user.exec.env[].value}' 2> /dev/null) --> old way
     k8s_namespace=$(kubectl config view -o jsonpath="{.contexts[?(@.name == '$k8s_context')].context.namespace}")
     if [[ $? == "0" ]]; then echo ''$k8s_symbol'['$k8s_context/$k8s_namespace']'; else echo ""; fi
 }
