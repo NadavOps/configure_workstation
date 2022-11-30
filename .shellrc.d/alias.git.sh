@@ -4,7 +4,11 @@
 ## Git aliases
 git_commit_all()
 {
-    git_commit_help() { bash_logging DEBUG "git_commit_all [-h](help) [-f](force) [-m cusomt_commit_message] [-p](pull first)" 1>&2; return }
+    git_commit_help()
+    {
+        bash_logging DEBUG "git_commit_all [-h](help) [-f](force) [-m cusomt_commit_message] [-p](pull first)" 1>&2
+        return
+    }
     local OPTIND o h f m p status_code
     while getopts "hfm:p" o; do
         case "${o}" in
