@@ -63,11 +63,13 @@ bash_edit_shell_rc() {
     os_type=$(uname | tr "[[:upper:]]" "[[:lower:]]")
     if [[ $os_type == *linux* || $os_type == *darwin* ]]; then
         current_rc_file=".bashrc"
+        verify_file "$HOME/$current_rc_file" || touch "$HOME/$current_rc_file"
         create_rc_dirs "$current_rc_file" "$archive_directory"
         update_rc_file "$current_rc_file" "$archive_directory" "${shell_rc_configurations_files[@]}" || exit 1
     fi
     if [[ $os_type == *darwin* ]]; then
         current_rc_file=".zshrc"
+        verify_file "$HOME/$current_rc_file" || touch "$HOME/$current_rc_file"
         create_rc_dirs "$current_rc_file" "$archive_directory" "unique_flow"
         update_rc_file "$current_rc_file" "$archive_directory" "${shell_rc_configurations_files[@]}" || exit 1
     fi
