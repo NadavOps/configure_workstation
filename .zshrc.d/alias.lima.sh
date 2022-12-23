@@ -1,3 +1,4 @@
+## Consider sending it to trash and install colima instead https://github.com/abiosoft/colima
 ## Lima (examples at https://github.com/lima-vm/lima/tree/master/examples)
 [[ $(command -v lima) ]] || return 0
 lima_home="$HOME/.lima"
