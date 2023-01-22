@@ -13,10 +13,11 @@ parse_k8s_context() {
 }
 
 parse_git_branch() {
-    local branch_symbol
+    local branch_symbol head_pointer
     [[ $(command -v git) ]] || return 0
     branch_symbol=$(echo $'\u2387')
-    git rev-parse --git-dir &> /dev/null && echo " $branch_symbol [$(git rev-parse --abbrev-ref HEAD)]"
+    head_pointer=$(git rev-parse --abbrev-ref HEAD 2> /dev/null)
+    git rev-parse --git-dir &> /dev/null && echo " $branch_symbol [$head_pointer]"
 }
 
 myprompt() {

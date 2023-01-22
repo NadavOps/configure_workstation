@@ -1,5 +1,5 @@
 ## Git
-[[ $(command -v git) ]] || exit 0
+[[ $(command -v git) ]] || return 0
 
 ## Git aliases
 git_commit_all()
@@ -32,10 +32,11 @@ git_commit_all()
     unset -f git_commit_help &> /dev/null
     shift $((OPTIND-1))
 
-    local branch_name
+    local branch_name default_remote_branch_name
     if ! git rev-parse --git-dir &> /dev/null; then bash_logging ERROR "$(pwd) is not a git directory" && return 1; fi
     branch_name=$(git rev-parse --abbrev-ref HEAD)
-    if [[ $branch_name == "main" || $branch_name == "master" ]] && [[ $f != "--force" ]]; then
+    default_remote_branch_name=$(git rev-parse --abbrev-ref refs/remotes/origin/HEAD 2> /dev/null | rev | cut -d "/" -f1 | rev)
+    if [[ "$branch_name" == "main" || $branch_name == "master" || "$branch_name" == "$default_remote_branch_name" ]] && [[ $f != "--force" ]]; then
         bash_logging ERROR "Branch \"$branch_name\" is sensitive. add -f to push anyway"
         return 1
     fi
