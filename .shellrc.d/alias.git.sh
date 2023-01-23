@@ -13,7 +13,7 @@ git_commit_all()
     while getopts "hfm:p" o; do
         case "${o}" in
             h)
-                git_commit_help unset -f git_commit_help; return
+                git_commit_help; unset -f git_commit_help; return
                 ;;
             f)
                 f="--force"
@@ -29,7 +29,6 @@ git_commit_all()
                 ;;
         esac
     done
-    unset -f git_commit_help &> /dev/null
     shift $((OPTIND-1))
 
     local branch_name default_remote_branch_name
