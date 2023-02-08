@@ -9,11 +9,12 @@ git_commit_all()
         bash_logging DEBUG "git_commit_all [-h](help) [-f](force) [-m cusomt_commit_message] [-p](pull first)" 1>&2
         return
     }
+    trap "unset -f git_commit_help" EXIT
     local OPTIND o h f m p status_code
     while getopts "hfm:p" o; do
         case "${o}" in
             h)
-                git_commit_help; unset -f git_commit_help; return
+                git_commit_help; return
                 ;;
             f)
                 f="--force"
@@ -25,7 +26,7 @@ git_commit_all()
                 p="--pull_first"
                 ;;
             *)
-                git_commit_help; unset -f git_commit_help; return
+                git_commit_help; return
                 ;;
         esac
     done
