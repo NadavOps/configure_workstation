@@ -55,3 +55,5 @@ bash_logging() {
         echo -e "$msg_enrich"
     fi
 }
+
+export -f function_name
