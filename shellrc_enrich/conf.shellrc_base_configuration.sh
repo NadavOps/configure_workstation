@@ -13,8 +13,9 @@ for shellrc_directory in "${shellrc_d_directories[@]}"; do
     for shellrc_file in $(ls $shellrc_directory); do source $shellrc_directory/$shellrc_file; done
 done
 
-## Environment variables
+## Export environment variables
 export PERSONAL_GIT_DIR="${PERSONAL_GIT_DIR:-"$HOME/my_git"}"
+
 ## Aliases
 alias reload_shellrc="source $HOME/$init_shell_file"
 alias reinstall_shellrc_generic="bash $PERSONAL_GIT_DIR/configure_workstation/bash_configure_workstation.sh"
@@ -22,6 +23,7 @@ alias reinstall_shellrc_opinionated="bash $PERSONAL_GIT_DIR/job_related/configur
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
+
 # if [ -x /usr/bin/dircolors ]; then alias ls='ls --color=auto'; fi
 alias ll='ls -lah'
 alias la='ls -A'
