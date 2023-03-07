@@ -32,7 +32,7 @@ aws_verify_profile() {
     return 1
 }
 
-aws_get_sso_credentials() {
+aws_get_credentials_of_sso_profile() {
     local recent_token_file sso_token_dir access_token profile_name profile_account_id profile_sso_role profile_region credentials_properties
     sso_token_dir="$HOME/.aws/sso/cache"
     recent_token_file="$(ls -ltah "$sso_token_dir" | head -n 2 | tail -1 | awk '{print $9}')"
@@ -49,5 +49,22 @@ aws_get_sso_credentials() {
     export AWS_ACCESS_KEY_ID=$(echo "$credentials_properties" | jq -r ".roleCredentials.accessKeyId")
     export AWS_SECRET_ACCESS_KEY=$(echo "$credentials_properties" | jq -r ".roleCredentials.secretAccessKey")
     export AWS_SESSION_TOKEN=$(echo "$credentials_properties" | jq -r ".roleCredentials.sessionToken")
+    aws sts get-caller-identity
+}
+
+aws_get_credentials_of_role_assumption() {
+    local profile_name role_arn credentials_properties
+    role_arn="$1"
+    profile_name="${2:-default}"
+    role_session_name="${3:-debugging}"
+    [[ -z "$role_arn" ]] && bash_logging ERROR "role_arn: \"$role_arn\" can't be empty (param #1)" && return 1
+    aws_verify_profile "$profile_name" || return 1
+    credentials_properties=$(aws sts assume-role \
+        --role-arn "$role_arn" \
+        --role-session-name "$role_session_name" \
+        --profile "$profile_name") || return 1
+    export AWS_ACCESS_KEY_ID=$(echo "$credentials_properties" | jq -r ".Credentials.AccessKeyId")
+    export AWS_SECRET_ACCESS_KEY=$(echo "$credentials_properties" | jq -r ".Credentials.SecretAccessKey")
+    export AWS_SESSION_TOKEN=$(echo "$credentials_properties" | jq -r ".Credentials.SessionToken")
     aws sts get-caller-identity
 }
