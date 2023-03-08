@@ -10,7 +10,7 @@ github_dispatch_workflow() {
     if [[ -z "$git_repository" || -z "$workflow_filename" || -z "$branch_name" || -z "$inputs" ]]; then
         bash_logging ERROR "not all parameters supplied"
     fi
-    git_token="${5-$GIT_TOKEN}"
+    git_token="cat ${5-$GIT_TOKEN}"
     bash_logging DEBUG "token: $git_token"
     git_owner="${6-$GIT_OWNER}"
     bash_logging DEBUG "owner: $git_owner"
