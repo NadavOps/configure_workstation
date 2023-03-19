@@ -15,6 +15,7 @@ done
 
 ## Export environment variables
 export PERSONAL_GIT_DIR="${PERSONAL_GIT_DIR:-"$HOME/my_git"}"
+export HISTSIZE=10000
 
 ## Aliases
 alias reload_shellrc="source $HOME/$init_shell_file"
