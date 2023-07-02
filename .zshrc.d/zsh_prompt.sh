@@ -6,7 +6,6 @@ get_cur_time() {
 parse_k8s_context() {
     local k8s_symbol k8s_context k8s_namespace
     [[ $(command -v kubectl) && -d $HOME/.kube && (-f $HOME/.kube/config || -n $KUBECONFIG) ]] || return 0
-    [[ $(command -v kubectl) && -d ~/.kube ]] || return 0
     k8s_symbol=$(echo $'\u2388')
     k8s_context=$(kubectl config view -o jsonpath='{.current-context}' 2> /dev/null)
     k8s_namespace=$(kubectl config view -o jsonpath="{.contexts[?(@.name == '$k8s_context')].context.namespace}")
