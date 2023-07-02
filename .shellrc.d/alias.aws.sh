@@ -26,7 +26,7 @@ aws_verify_profile() {
     local profile_name
     profile_name="${1:-default}"
     bash_logging DEBUG "Looking for aws profile: \"$profile_name\""
-    aws configure list --profile "$profile_name" &> /dev/null && return 0
+    aws configure list --profile "$profile_name" > /dev/null && return 0
     bash_logging ERROR "Profile \"$profile_name\" was not found. here are the avilable profiles"
     aws configure list-profiles
     return 1
@@ -53,7 +53,7 @@ aws_get_credentials_of_sso_profile() {
 }
 
 aws_get_credentials_of_role_assumption() {
-    local profile_name role_arn credentials_properties
+    local role_arn profile_name credentials_properties
     role_arn="$1"
     profile_name="${2:-default}"
     role_session_name="${3:-debugging}"
