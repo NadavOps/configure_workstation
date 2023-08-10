@@ -1,0 +1,11 @@
+name: Trivy secret scan call
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  trivy_secret_module_call:
+    uses: NadavOps/github_actions/.github/workflows/trivy_fs_secret_scan.yml@main
