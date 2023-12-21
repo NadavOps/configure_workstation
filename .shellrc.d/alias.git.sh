@@ -7,6 +7,7 @@ git_commit_all() (
             [-p](pull_first) \\
             [-m][commit message] \\
             [-c][commit hash] \\
+            [-r](revert + fixup commit) \\
             [-s](push_sensitive_branch) \\
             [-h](help)" 1>&2
     }
@@ -19,27 +20,34 @@ git_commit_all() (
     }
 
     git_commit_all_commit_message() {
-        local commit_message commit_hash
+        local commit_message commit_hash revert_commit_enable
         commit_message="$1"
         commit_hash="$2"
+        revert_commit_enable="$3"
         if [[ -n "$commit_message" ]]; then
             git_commit_all_run_command "git commit -m \"$commit_message\"" || return 1
         else
             if [[ -z "$commit_hash" ]]; then
                 commit_hash=$(git rev-parse HEAD)
             fi
-            git_commit_all_run_command "git commit --fixup $commit_hash" || return 1
-            # git_commit_all_run_command "git commit -m \"fixup! $commit_hash\"" || return 1
+            if [[ -n "$revert_commit_enable" ]]; then
+                git_commit_all_run_command "git revert --no-commit $commit_hash" || return 1
+                git_commit_all_run_command "git commit --fixup $commit_hash" || return 1
+            else
+                git_commit_all_run_command "git commit --fixup $commit_hash" || return 1
+                # git_commit_all_run_command "git commit -m \"fixup! $commit_hash\"" || return 1
+            fi
         fi
     }
 
-    local o h p m c s
-    while getopts "hpm:c:s" o; do
+    local o h p m c r s
+    while getopts "hpm:c:rs" o; do
         case "$o" in
             h) git_commit_all_help; return 0;;
             p) p="--pull_first";;
             m) m="${OPTARG}";;
             c) c="${OPTARG}";;
+            r) r="--revert_fixup_commit";;
             s) s="--push_sensitive_branch";;
             *) git_commit_all_help; return 1;;
         esac
@@ -51,6 +59,12 @@ git_commit_all() (
         return 1
     fi
 
+    if [[ -n "$r" && -z "$c" ]]; then
+        git_commit_all_help
+        bash_logging ERROR "Revert commit needs a commit hash. -r flag needs to be passed with -c flag"
+        return 1
+    fi
+
     local branch_name default_remote_branch_name status_code
     if ! git rev-parse --git-dir &> /dev/null; then bash_logging ERROR "$(pwd) is not a git directory" && return 1; fi
     branch_name=$(git rev-parse --abbrev-ref HEAD)
@@ -58,8 +72,11 @@ git_commit_all() (
 
     if [[ "$p" == "--pull_first" ]]; then git_commit_all_run_command "git pull" || return 1; fi
 
-    if [[ -z "$(git status --porcelain)" ]]; then
-        bash_logging INFO "Working tree is clean, nothing to add or commit"
+    if [[ -n "$r" ]]; then
+        bash_logging INFO "Making a revert fixup commit"
+        git_commit_all_commit_message "$m" "$c" "$r" || return 1
+    elif [[ -z "$(git status --porcelain)" ]]; then
+        bash_logging INFO "Working tree is clean, nothing to add or commit"        
     elif [[ -n "$(git diff --cached --exit-code)" ]]; then
         git_commit_all_commit_message "$m" "$c" || return 1
     # elif [[ -n "$(git diff --exit-code)" ]]; then
