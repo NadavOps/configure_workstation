@@ -38,6 +38,8 @@ aws_get_credentials_of_sso_profile() {
     recent_token_file="$(ls -ltah "$sso_token_dir" | head -n 2 | tail -1 | awk '{print $9}')"
     access_token="$(cat $sso_token_dir/$recent_token_file | jq -r .accessToken)"
     profile_name="${1:-default}"
+    show_values_enabled="${2:-false}"
+    bash_logging DEBUG "profile_name: \"$profile_name\", show_values_enabled: \"$show_values_enabled\""
     aws_verify_profile "$profile_name" || return 1
     profile_account_id=$(aws configure get sso_account_id --profile "$profile_name")
     profile_sso_role=$(aws configure get sso_role_name --profile "$profile_name")
@@ -49,6 +51,11 @@ aws_get_credentials_of_sso_profile() {
     export AWS_ACCESS_KEY_ID=$(echo "$credentials_properties" | jq -r ".roleCredentials.accessKeyId")
     export AWS_SECRET_ACCESS_KEY=$(echo "$credentials_properties" | jq -r ".roleCredentials.secretAccessKey")
     export AWS_SESSION_TOKEN=$(echo "$credentials_properties" | jq -r ".roleCredentials.sessionToken")
+    if [[ "$show_values_enabled" == "true" ]]; then
+        bash_logging INFO "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\""
+        bash_logging INFO "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\""
+        bash_logging INFO "AWS_SESSION_TOKEN=\"$AWS_SESSION_TOKEN\""
+    fi
     aws sts get-caller-identity
 }
 
@@ -57,6 +64,8 @@ aws_get_credentials_of_role_assumption() {
     role_arn="$1"
     profile_name="${2:-default}"
     role_session_name="${3:-debugging}"
+    show_values_enabled="${4:-false}"
+    bash_logging DEBUG "role_arn: \"$role_arn\", profile_name: \"$profile_name\", role_session_name: \"$role_session_name\", show_values_enabled: \"$show_values_enabled\""
     [[ -z "$role_arn" ]] && bash_logging ERROR "role_arn: \"$role_arn\" can't be empty (param #1)" && return 1
     aws_verify_profile "$profile_name" || return 1
     credentials_properties=$(aws sts assume-role \
@@ -66,5 +75,10 @@ aws_get_credentials_of_role_assumption() {
     export AWS_ACCESS_KEY_ID=$(echo "$credentials_properties" | jq -r ".Credentials.AccessKeyId")
     export AWS_SECRET_ACCESS_KEY=$(echo "$credentials_properties" | jq -r ".Credentials.SecretAccessKey")
     export AWS_SESSION_TOKEN=$(echo "$credentials_properties" | jq -r ".Credentials.SessionToken")
+    if [[ "$show_values_enabled" == "true" ]]; then
+        bash_logging INFO "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\""
+        bash_logging INFO "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\""
+        bash_logging INFO "AWS_SESSION_TOKEN=\"$AWS_SESSION_TOKEN\""
+    fi
     aws sts get-caller-identity
 }
