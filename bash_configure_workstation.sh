@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 CURRENT_DIR=$(pwd)
 
 back_to_original_dir() {

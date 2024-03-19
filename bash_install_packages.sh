@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 verify_linux_package_manager() {
     if [[ $(command -v apt) ]]; then
         bash_logging INFO "\"apt\" package manager was found"
@@ -17,6 +17,16 @@ verify_mac_package_manager() {
         bash_logging DEBUG "\"brew\" package manager was not found. Installing"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi   
+}
+
+verify_mac_bash_version() {
+    bash_major_version=$(bash -c 'echo "${BASH_VERSINFO[0]}"')
+    if [[ "$bash_major_version" -ge "5" ]]; then
+        bash_logging INFO "\"bash\" major version is: $bash_major_version"
+    else
+        bash_logging WARN "\"bash\" major version is: $bash_major_version. requires upgrade"
+        brew install bash
+    fi
 }
 
 install_url_package() {
@@ -197,6 +207,7 @@ bash_install_packages() {
     elif [[ $os_type == *darwin* ]]; then
         bash_logging DEBUG "We in Mac. (os_type: \"$os_type\")"
         verify_mac_package_manager
+        verify_mac_bash_version
         install_mac_packages_list "${packages_list_array[@]}"
     else
         bash_logging ERROR "what is this OS? (os_type is $os_type)"

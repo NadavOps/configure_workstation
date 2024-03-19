@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 create_rc_dirs() {
     local current_rc_file shellrc_d_directories shellrc_directory shellrc_file archive_directory dest_shellrc_file unique_flow
     current_rc_file="$1"
