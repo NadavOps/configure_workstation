@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 verify_linux_package_manager() {
     if [[ $(command -v apt) ]]; then
         bash_logging INFO "\"apt\" package manager was found"
@@ -12,11 +12,18 @@ verify_linux_package_manager() {
 verify_mac_package_manager() {
     if [[ $(command -v brew) ]]; then
         bash_logging INFO "\"brew\" package manager was found"
-        return 0
     else
         bash_logging DEBUG "\"brew\" package manager was not found. Installing"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-    fi   
+    fi
+
+    if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+        bash_logging INFO "\"sdk\" package manager was found"
+    else
+        bash_logging DEBUG "\"sdk\" package manager was not found. Installing"
+        curl -s "https://get.sdkman.io" | bash
+        # is this required? source "/$HOME/.sdkman/bin/sdkman-init.sh"
+    fi
 }
 
 verify_mac_bash_version() {
