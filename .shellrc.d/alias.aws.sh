@@ -82,3 +82,6 @@ aws_get_credentials_of_role_assumption() {
     fi
     aws sts get-caller-identity
 }
+
+[[ $(command -v aws_completer) ]] || return 0
+complete -C '$(which aws_completer)' aws
