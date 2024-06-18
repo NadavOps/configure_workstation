@@ -13,6 +13,10 @@ for shellrc_directory in "${shellrc_d_directories[@]}"; do
     for shellrc_file in $(ls $shellrc_directory); do source $shellrc_directory/$shellrc_file; done
 done
 
+## Terminals locals and encoding
+export LC_ALL=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+
 ## Export environment variables
 export PERSONAL_GIT_DIR="${PERSONAL_GIT_DIR:-"$HOME/my_git"}"
 export HISTSIZE=10000
