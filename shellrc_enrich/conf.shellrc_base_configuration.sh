@@ -24,7 +24,7 @@ export HISTSIZE=10000
 ## Aliases
 alias reload_shellrc="source $HOME/$init_shell_file"
 alias reinstall_shellrc_generic="bash $PERSONAL_GIT_DIR/configure_workstation/bash_configure_workstation.sh"
-alias reinstall_shellrc_opinionated="bash $PERSONAL_GIT_DIR/job_related/configure_workstation/configure_workstation.sh"
+alias reinstall_shellrc_opinionated="bash $PERSONAL_GIT_DIR/configure_workstation_job/configure_workstation.sh"
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
