@@ -6,9 +6,6 @@ Missing:
     * colima stop && rm -rf ~/.colima && colima delete default (colima reset)
     * colima start --vm-type vz --mount-type virtiofs --cpu 4 --memory 4 --disk 60 (mac suggested)
     * colima start --vm-type qemu --mount-type sshfs --cpu 4 --memory 4 --disk 60 (default)
-* mysql-client PATH is not added by default -> https://stackoverflow.com/questions/30990488/how-do-i-install-command-line-mysql-client-on-mac
-    * /usr/local/opt/mysql-client/bin
-
 
 MAC additional software to consider:
 * clipboard manager
