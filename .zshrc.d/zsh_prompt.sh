@@ -3,6 +3,17 @@ get_cur_time() {
     date +"%T"
 }
 
+parse_venv_name() {
+    local venv_name
+    local venv_symbol=$'\U1F40D'
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        local venv_name=$(basename "$VIRTUAL_ENV")
+        echo ' '$venv_symbol'['$venv_name']'
+    else
+        echo ""
+    fi
+}
+
 parse_k8s_context() {
     local k8s_symbol k8s_context k8s_namespace
     [[ $(command -v kubectl) && -d $HOME/.kube && (-f $HOME/.kube/config || -n $KUBECONFIG) ]] || return 0
@@ -22,14 +33,13 @@ parse_git_branch() {
 
 myprompt() {
     local red=001; local green=002; local yellow=003; local purple_dark=004; local purple_light=140; local cyan=006; local brownish=138; local bluish=39
-    local orange=166; local orange_light=130; local yellow=142; local dark_cyan=024; local green=35; local green_light=36; local peach=216
+    local orange=166; local orange_light=130; local yellow=142; local cyan=006; local dark_cyan=024; local green=35; local green_light=36; local peach=216
 
-    PROMPT='%(?.%F{'$green'}[%?].%F{'$red'}[%?]) %F{'$purple_light'}'$(get_cur_time)' %F{'$bluish'}'$(parse_k8s_context)'%F{'$green_light'}'$(parse_git_branch)' %F{'$peach'}'$(pwd)'%f 
+    PROMPT='%(?.%F{'$green'}[%?].%F{'$red'}[%?]) %F{'$purple_light'}'$(get_cur_time)' %F{'$bluish'}'$(parse_k8s_context)'%F{'$cyan'}'$(parse_venv_name)'%F{'$green_light'}'$(parse_git_branch)' %F{'$peach'}'$(pwd)'%f
 %# '
 }
 
 precmd() { myprompt; }
-
 
 ## if interactive rebase makes problem consider shifting back to this
 # parse_git_branch() {
