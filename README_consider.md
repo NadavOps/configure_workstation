@@ -31,6 +31,7 @@ MAC soft configuration: (not programatic right now)
 
 Other:
 * typing club to improve typing/ type racer
+* uv package manager alternative to pip
 
 
 
