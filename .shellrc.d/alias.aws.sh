@@ -1,5 +1,30 @@
 [[ $(command -v aws) ]] || return 0
 
+aws_config_file() {
+    local config_file interactive_word
+    interactive_word="pick"
+    bash_logging INFO "USAGE:
+        * aws_config_file -> set the AWS_CONFIG_FILE to the default config file
+        * aws_config_file \"$interactive_word\" -> Interactive mode to pick a config file
+        * aws_config_file \"config_file_path\" -> set the AWS_CONFIG_FILE to \"config_file_path\"
+"
+    if [[ -z "$1" ]]; then
+        config_file="${AWS_CONFIG_FILE:-$HOME/.aws/config}"
+    elif [[ "$1" == "$interactive_word" ]]; then
+        config_file="$(ls $HOME/.aws/*config* | fzf)"
+    else
+        config_file="$1"
+    fi
+
+    if [[ ! -f "$config_file" ]]; then
+        bash_logging ERROR "AWS_CONFIG_FILE does not exist: \"$config_file\""
+        return 1
+    fi
+
+    export AWS_CONFIG_FILE="$config_file"
+    bash_logging INFO "AWS_CONFIG_FILE is set to: \"$config_file\""
+}
+
 aws_ecr_login() {
     local aws_region
     aws_region="${AWS_REGION:-us-east-1}"
