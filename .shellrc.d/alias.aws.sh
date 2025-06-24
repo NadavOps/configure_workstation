@@ -1,7 +1,7 @@
 [[ $(command -v aws) ]] || return 0
 
 aws_config_file() {
-    local config_file interactive_param merge_param file
+    local config_file interactive_param merge_param iterator
     interactive_param="i"
     merge_param="m"
     bash_logging INFO "USAGE:
@@ -35,9 +35,9 @@ aws_config_file() {
         fi
 
         bash_logging INFO "Re-creating $config_file"
-        for file in $(find "$HOME/.aws/config.d/" -type f ! -name '*ignore*' | sort); do
-            echo "### file: $file ###" >> "$config_file"
-            cat "$file" >> "$config_file"
+        for iterator in $(find "$HOME/.aws/config.d/" -type f ! -name '*ignore*' | sort); do
+            echo "### file: $iterator ###" >> "$config_file"
+            cat "$iterator" >> "$config_file"
         done
     else
         config_file="$1"
@@ -50,6 +50,10 @@ aws_config_file() {
 
     export AWS_CONFIG_FILE="$config_file"
     bash_logging INFO "AWS_CONFIG_FILE is set to: \"$config_file\""
+
+    for iterator in $(grep '^\[' "$config_file" | sed 's/^\[\(.*\)\]$/\1/' | sort | uniq -d); do
+        bash_logging WARN "Found duplicate profile: \"$iterator\" in $config_file"
+    done
 }
 
 aws_ecr_login() {
