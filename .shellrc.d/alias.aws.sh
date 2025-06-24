@@ -1,17 +1,44 @@
 [[ $(command -v aws) ]] || return 0
 
 aws_config_file() {
-    local config_file interactive_word
-    interactive_word="pick"
+    local config_file interactive_param merge_param file
+    interactive_param="i"
+    merge_param="m"
     bash_logging INFO "USAGE:
-        * aws_config_file -> set the AWS_CONFIG_FILE to the default config file
-        * aws_config_file \"$interactive_word\" -> Interactive mode to pick a config file
-        * aws_config_file \"config_file_path\" -> set the AWS_CONFIG_FILE to \"config_file_path\"
+        * set the AWS_CONFIG_FILE to the default path:
+                aws_config_file
+
+        * set the AWS_CONFIG_FILE Interactively:
+                aws_config_file \"$interactive_param\"
+
+        * set the AWS_CONFIG_FILE to $HOME/.aws/config after recreating it from all the configs in $HOME/.aws/config.d:
+                aws_config_file \"$merge_param\"
+
+        * set the AWS_CONFIG_FILE to \"config_file_path\":
+                aws_config_file \"config_file_path\"
 "
     if [[ -z "$1" ]]; then
-        config_file="${AWS_CONFIG_FILE:-$HOME/.aws/config}"
-    elif [[ "$1" == "$interactive_word" ]]; then
-        config_file="$(ls $HOME/.aws/*config* | fzf)"
+        if [[ -n "$AWS_CONFIG_FILE" ]]; then
+            bash_logging INFO "AWS_CONFIG_FILE is already set to: \"$AWS_CONFIG_FILE\""
+            config_file="$AWS_CONFIG_FILE"
+        else
+            config_file="$HOME/.aws/config"
+        fi
+    elif [[ "$1" == "$interactive_param" ]]; then
+        config_file="$(ls $HOME/.aws/config.d/* | fzf)"
+    elif [[ "$1" == "$merge_param" ]]; then
+        config_file="$HOME/.aws/config"
+        if [[ -f "$config_file" ]]; then
+            bash_logging INFO "Backing up $config_file to /tmp/aws_config_file.$(gdate +%Y%m%d_%H%M%S)"
+            cp "$config_file" "/tmp/aws_config_file.$(gdate +%Y%m%d_%H%M%S)"
+            rm -f "$config_file"
+        fi
+
+        bash_logging INFO "Re-creating $config_file"
+        for file in $(find "$HOME/.aws/config.d/" -type f ! -name '*ignore*' | sort); do
+            echo "### file: $file ###" >> "$config_file"
+            cat "$file" >> "$config_file"
+        done
     else
         config_file="$1"
     fi
