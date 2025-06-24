@@ -1,6 +1,17 @@
 Missing:
 * Required bash 5 or package parsing fails (to solve run once then run brew install bash)
 * code command for VScode does not populate by default
+* vscode configuration:
+```json
+{
+    "search.useIgnoreFiles": false,
+    "remote.SSH.configFile": "/path_to/.ssh/config.vscode",
+    "files.associations": {
+        "**/.aws/config*": "ini",
+        "**/.aws/config.d/*": "ini"
+    }
+}
+```
 * colima, builder, ecr adjust
     * docker buildx create --name mybuilder --bootstrap --use
     * colima stop && rm -rf ~/.colima && colima delete default (colima reset)
