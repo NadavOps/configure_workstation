@@ -139,3 +139,19 @@ git_log() {
     number_of_commits="$1"
     git log --pretty=format:"%C(auto)%h %ad %an %d %s" --date short --graph -n ${1-10}
 }
+
+git_clean_all() {
+    local git_dir approve
+    if ! git_dir=$(git rev-parse --show-toplevel); then
+        bash_logging ERROR "Not inside a Git repository"
+        return 1
+    fi
+    bash_logging INFO "Preview files to be removed in $git_dir"
+    git -C "$git_dir" clean -fdn
+    bash_logging WARN "Press \"y\" to continue, Ctrl+C to cancel"
+    read approve
+    if [[ "$approve" == "y" ]]; then
+        bash_logging INFO "Removing files in $git_dir"
+        git -C "$git_dir" clean -fd
+    fi
+}
